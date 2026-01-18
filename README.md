@@ -17,3 +17,5 @@ In the standard increasing sort, we check `A[i] > key`. To achieve a decreasing 
 1. **Python:** Requires Python 3.8 or higher.
 3. **Running the code:**
  insertion_sort.py
+ ## Reference:
+Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). Introduction to Algorithms (4th ed.). Random House Publishing Services. 
