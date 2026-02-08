@@ -3,6 +3,9 @@ import sys
 import time
 import csv
 from statistics import mean
+import os
+
+import matplotlib.pyplot as plt
 
 sys.setrecursionlimit(1000000)
 
@@ -96,8 +99,99 @@ def run_bench(sizes, distributions, trials=3, out_csv='results_sorting.csv'):
             writer.writerow(r)
 
 
+# ---- Plotting utilities (reads results_sorting.csv and writes PNGs) ----
+def _find_csv(out_csv='results_sorting.csv'):
+    candidates = [
+        os.path.join(os.getcwd(), out_csv),
+        os.path.join(os.path.dirname(__file__), out_csv),
+        os.path.join(os.path.dirname(os.path.dirname(__file__)), out_csv),
+    ]
+    for p in candidates:
+        if os.path.exists(p):
+            return p
+    raise FileNotFoundError(f'{out_csv} not found; run the benchmark first')
+
+
+def _read_results(path):
+    rows = []
+    with open(path, newline='') as f:
+        reader = csv.DictReader(f)
+        for r in reader:
+            r['n'] = int(r['n'])
+            r['rand_mean'] = float(r['rand_mean'])
+            r['det_mean'] = float(r['det_mean'])
+            rows.append(r)
+    return rows
+
+
+def _plot_by_distribution(rows, out_dir=None):
+    if out_dir is None:
+        out_dir = os.path.dirname(_find_csv())
+    dist_map = {}
+    for r in rows:
+        dist_map.setdefault(r['distribution'], []).append(r)
+
+    for dist, items in dist_map.items():
+        items.sort(key=lambda x: x['n'])
+        ns = [i['n'] for i in items]
+        rand = [i['rand_mean'] for i in items]
+        det = [i['det_mean'] for i in items]
+
+        plt.figure()
+        plt.plot(ns, rand, marker='o', label='Randomized Quicksort')
+        plt.plot(ns, det, marker='o', label='Deterministic Quicksort')
+        plt.xlabel('n (array size)')
+        plt.ylabel('Time (s)')
+        plt.title(f'Quicksort performance — {dist}')
+        plt.legend()
+        plt.grid(True)
+        out_path = os.path.join(out_dir, f'sorting_{dist}.png')
+        plt.savefig(out_path)
+        plt.close()
+        print('Saved', out_path)
+
+
+def _plot_combined(rows, out_dir=None):
+    if out_dir is None:
+        out_dir = os.path.dirname(_find_csv())
+    dist_items = {}
+    for r in rows:
+        dist_items.setdefault(r['distribution'], []).append(r)
+
+    plt.figure()
+    for dist, items in dist_items.items():
+        items.sort(key=lambda x: x['n'])
+        ns = [i['n'] for i in items]
+        rand = [i['rand_mean'] for i in items]
+        det = [i['det_mean'] for i in items]
+        plt.plot(ns, rand, marker='o', label=f'Rand ({dist})')
+        plt.plot(ns, det, marker='x', linestyle='--', label=f'Det ({dist})')
+
+    plt.xlabel('n (array size)')
+    plt.ylabel('Time (s)')
+    plt.title('Quicksort performance across distributions')
+    plt.legend()
+    plt.grid(True)
+    out_path = os.path.join(out_dir, 'sorting_combined.png')
+    plt.savefig(out_path)
+    plt.close()
+    print('Saved', out_path)
+
+
 if __name__ == '__main__':
     sizes = [1000, 2000, 5000, 10000]
     distributions = ['random', 'sorted', 'reversed', 'repeated']
-    run_bench(sizes, distributions, trials=5)
-    print('Benchmark complete. Results saved to results_sorting.csv')
+    out_csv = 'results_sorting.csv'
+    run_bench(sizes, distributions, trials=5, out_csv=out_csv)
+    print('Benchmark complete. Results saved to', out_csv)
+
+    # generate plots from the produced CSV
+    try:
+        csv_path = _find_csv(out_csv)
+        rows = _read_results(csv_path)
+        out_dir = os.path.dirname(csv_path)
+        _plot_by_distribution(rows, out_dir)
+        _plot_combined(rows, out_dir)
+        print('Plots generated in', out_dir)
+    except Exception as e:
+        print('Plot generation skipped:', e)

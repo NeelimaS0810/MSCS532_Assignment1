@@ -1,4 +1,9 @@
 import random
+import time
+import csv
+import os
+
+import matplotlib.pyplot as plt
 
 
 class HashTable:
@@ -108,3 +113,101 @@ def _demo(n=2000):
 
 if __name__ == "__main__":
     _demo()
+
+    def run_hash_bench(sizes=(1000, 2000, 5000, 10000), trials=5, out_csv='results_hashing.csv'):
+        rows = []
+        for n in sizes:
+            ins_times = []
+            search_times = []
+            del_times = []
+            for t in range(trials):
+                ht = HashTable(size=5)
+                # inserts
+                start = time.perf_counter()
+                for i in range(n):
+                    ht.insert(f'key{i}', i)
+                ins_times.append(time.perf_counter() - start)
+
+                # searches
+                start = time.perf_counter()
+                _ = all(ht.search(f'key{i}') == i for i in range(n))
+                search_times.append(time.perf_counter() - start)
+
+                # deletes every 10th
+                start = time.perf_counter()
+                for i in range(0, n, 10):
+                    ht.delete(f'key{i}')
+                del_times.append(time.perf_counter() - start)
+
+            row = {
+                'n': n,
+                'ins_mean': sum(ins_times) / len(ins_times),
+                'search_mean': sum(search_times) / len(search_times),
+                'del_mean': sum(del_times) / len(del_times),
+                'ins_times': ';'.join(f"{x:.6f}" for x in ins_times),
+                'search_times': ';'.join(f"{x:.6f}" for x in search_times),
+                'del_times': ';'.join(f"{x:.6f}" for x in del_times),
+            }
+            print(f"n={n} ins={row['ins_mean']:.6f}s search={row['search_mean']:.6f}s del={row['del_mean']:.6f}s")
+            rows.append(row)
+
+        with open(out_csv, 'w', newline='') as f:
+            writer = csv.DictWriter(f, fieldnames=['n', 'ins_mean', 'search_mean', 'del_mean', 'ins_times', 'search_times', 'del_times'])
+            writer.writeheader()
+            for r in rows:
+                writer.writerow(r)
+
+        return out_csv
+
+    def _find_csv(out_csv='results_hashing.csv'):
+        candidates = [
+            os.path.join(os.getcwd(), out_csv),
+            os.path.join(os.path.dirname(__file__), out_csv),
+        ]
+        for p in candidates:
+            if os.path.exists(p):
+                return p
+        raise FileNotFoundError(f'{out_csv} not found')
+
+    def _read_hash_results(path):
+        rows = []
+        with open(path, newline='') as f:
+            reader = csv.DictReader(f)
+            for r in reader:
+                r['n'] = int(r['n'])
+                r['ins_mean'] = float(r['ins_mean'])
+                r['search_mean'] = float(r['search_mean'])
+                r['del_mean'] = float(r['del_mean'])
+                rows.append(r)
+        return rows
+
+    def _plot_hash_results(rows, out_dir=None):
+        if out_dir is None:
+            out_dir = os.path.dirname(_find_csv())
+        rows.sort(key=lambda x: x['n'])
+        ns = [r['n'] for r in rows]
+        ins = [r['ins_mean'] for r in rows]
+        search = [r['search_mean'] for r in rows]
+        dels = [r['del_mean'] for r in rows]
+
+        plt.figure()
+        plt.plot(ns, ins, marker='o', label='Insert (mean)')
+        plt.plot(ns, search, marker='o', label='Search (mean)')
+        plt.plot(ns, dels, marker='o', label='Delete (mean)')
+        plt.xlabel('n (number of keys)')
+        plt.ylabel('Time (s)')
+        plt.title('HashTable operation times')
+        plt.legend()
+        plt.grid(True)
+        out_path = os.path.join(out_dir, 'hashing_ops.png')
+        plt.savefig(out_path)
+        plt.close()
+        print('Saved', out_path)
+
+    # run benchmark and plotting
+    try:
+        csv_path = run_hash_bench()
+        rows = _read_hash_results(csv_path)
+        _plot_hash_results(rows)
+    except Exception as e:
+        print('Hash benchmark/plotting skipped:', e)
