@@ -30,3 +30,36 @@ This repository contains the implementation and performance analysis for **Merge
 ## Algorithms Implemented
 1. **Merge Sort**: A stable, comparison-based divide-and-conquer algorithm with a guaranteed Theta(n lg n) time complexity.
 2. **Quick Sort**: An efficient, in-place divide-and-conquer algorithm with an average-case complexity of Theta(n \lg n).
+
+#####Assignment 3 — Randomized Quicksort and Hashing with Chaining#######
+
+Overview
+
+This folder contains implementations and small experiments for:
+- Randomized Quicksort and Deterministic Quicksort (first-element pivot)
+- A HashTable using chaining with dynamic resizing
+
+Run the sorting benchmark (generates CSV + plots):
+
+```bash
+python Assignment-3/sorting.py
+```
+
+- Produces `results_sorting.csv` and PNG plots (`sorting_*.png`) in the same folder.
+- The script runs multiple trials and writes mean and per-trial timings.
+
+Run the hashing demo and benchmark (generates CSV + plot):
+
+```bash
+python Assignment-3/hashing.py
+```
+
+- Produces `results_hashing.csv` and `hashing_ops.png` in the same folder.
+
+Files
+
+- `sorting.py` — implementations of `randomized_quicksort` and `deterministic_quicksort`; also contains the benchmark and plotting code (run as a script).
+- `hashing.py` — `HashTable` with chaining and dynamic resizing; includes demo, benchmark, and plotting when executed as a script.
+- `report.md` — theoretical analysis, empirical discussion, and links to generated results.
+- `results_sorting.csv`, `results_hashing.csv` — generated CSV results.
+- `sorting_*.png`, `sorting_combined.png`, `hashing_ops.png` — plots generated from the CSVs.
