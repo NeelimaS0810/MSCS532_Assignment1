@@ -63,3 +63,13 @@ Files
 - `report.md` — theoretical analysis, empirical discussion, and links to generated results.
 - `results_sorting.csv`, `results_hashing.csv` — generated CSV results.
 - `sorting_*.png`, `sorting_combined.png`, `hashing_ops.png` — plots generated from the CSVs.
+
+# Assignment 4 — Heap Data Structures
+
+Files added:
+
+- `heapsort.py`: Heapsort implementation (max-heap based).
+- `priority_queue.py`: `MaxHeap` priority queue with `insert`, `extract_max`, `increase_key`, and `is_empty`.
+- `scheduler.py`: Simple scheduler simulation that uses the priority queue.
+- `benchmarks.py`: Benchmarks comparing Heapsort, Quicksort, Mergesort, and Python `sorted()`.
+- `report.md`: Assignment report with analysis and results (see below).
